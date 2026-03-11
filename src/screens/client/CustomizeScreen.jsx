@@ -298,18 +298,32 @@ const CustomizeScreen = ({ navigation }) => {
 
                     {/* ── Color Selector ── */}
                     <View style={styles.section}>
-                        <Text style={styles.sectionLabel}>COLOR — {selectedColor.toUpperCase()}</Text>
-                        <View style={styles.colorRow}>
-                            {COLORS.map(c => (
-                                <TouchableOpacity
-                                    key={c.name}
-                                    style={[styles.colorBtn, { backgroundColor: c.hex }, selectedColor === c.name && styles.colorBtnActive]}
-                                    onPress={() => setSelectedColor(c.name)}
-                                    activeOpacity={0.7}
-                                >
-                                    {selectedColor === c.name && <Text style={styles.colorCheck}>✓</Text>}
-                                </TouchableOpacity>
-                            ))}
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                            <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>PICK COLOR</Text>
+                            <Text style={{ color: '#00ffff', fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>{selectedColor.toUpperCase()}</Text>
+                        </View>
+                        <View style={{ maxHeight: 180, borderRadius: 12, overflow: 'hidden' }}>
+                            <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
+                                {COLORS.map(c => (
+                                    <TouchableOpacity
+                                        key={c.name}
+                                        style={[
+                                            styles.colorListBtn,
+                                            selectedColor === c.name && styles.colorListBtnActive
+                                        ]}
+                                        onPress={() => setSelectedColor(c.name)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <View style={styles.colorRowInner}>
+                                            <View style={[styles.colorCircle, { backgroundColor: c.hex }, selectedColor === c.name && styles.colorCircleActive]} />
+                                            <Text style={[styles.colorNameLabel, selectedColor === c.name && styles.colorNameLabelActive]}>
+                                                {c.name.toUpperCase()}
+                                            </Text>
+                                        </View>
+                                        {selectedColor === c.name && <Text style={styles.colorListCheck}>✓</Text>}
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
                         </View>
                     </View>
 
@@ -454,10 +468,14 @@ const styles = StyleSheet.create({
     sizeBtnText: { color: '#555', fontSize: 13, fontWeight: '700' },
     sizeBtnTextActive: { color: '#00ffff' },
 
-    colorRow: { flexDirection: 'row', gap: 12 },
-    colorBtn: { width: 42, height: 42, borderRadius: 21, borderWidth: 2, borderColor: '#2a2a2a', justifyContent: 'center', alignItems: 'center' },
-    colorBtnActive: { borderColor: '#00ffff', borderWidth: 3 },
-    colorCheck: { color: '#00ffff', fontSize: 16, fontWeight: '900' },
+    colorRowInner: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    colorListBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', borderRadius: 10, marginBottom: 8 },
+    colorListBtnActive: { backgroundColor: 'rgba(0,255,249,0.08)', borderColor: 'rgba(0,255,249,0.5)' },
+    colorCircle: { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
+    colorCircleActive: { borderColor: '#00ffff', borderWidth: 2 },
+    colorNameLabel: { color: '#ccc', fontSize: 13, fontWeight: '400', letterSpacing: 1 },
+    colorNameLabelActive: { color: '#00ffff', fontWeight: '700' },
+    colorListCheck: { color: '#00ffff', fontSize: 16, fontWeight: '900' },
 
     fitRow: { flexDirection: 'row', gap: 10 },
     fitBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: '#2a2a2a', backgroundColor: '#111', alignItems: 'center' },
