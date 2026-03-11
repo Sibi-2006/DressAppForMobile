@@ -1,0 +1,83 @@
+# ── Parent directory files (monorepo) ────────────────────
+../.git
+../client
+../server
+../README.md
+../.gitignore
+
+# ── Node Modules (EAS installs fresh) ────────────────────
+node_modules/
+.npm/
+
+# ── Version Control ──────────────────────────────────────
+.git
+.gitignore
+.gitattributes
+
+# ── Environment & Secrets ────────────────────────────────
+.env
+.env.*
+*.env
+.env.local
+.env.development
+.env.production
+
+# ── OS & Editor Artifacts ────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── Documentation ────────────────────────────────────────
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+LICENSE
+*.md
+
+# ── Linting / Formatting ─────────────────────────────────
+.eslintrc
+.eslintrc.js
+.eslintrc.json
+.eslintignore
+.prettierrc
+.prettierrc.js
+.prettierignore
+.editorconfig
+
+# ── TypeScript build helpers ─────────────────────────────
+tsconfig.json
+tsconfig.*.json
+
+# ── Test directories & coverage ──────────────────────────
+__tests__/
+__mocks__/
+*.test.js
+*.spec.js
+coverage/
+jest.config.js
+jest.setup.js
+
+# ── Build / dist output ──────────────────────────────────
+dist/
+build/
+web-build/
+android/
+ios/
+
+# ── Log files ────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Expo internal ────────────────────────────────────────
+.expo/
+.expo-shared/
+
+# ── Misc ─────────────────────────────────────────────────
+*.bak
+*.orig
+*.map

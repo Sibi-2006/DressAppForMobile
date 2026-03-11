@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "NEONTHREADS",
+    "slug": "neonthreads",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0a0a"
+    },
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0a0a0a"
+      },
+      "package": "com.neonthreads.app",
+      "versionCode": 1,
+      "jsEngine": "hermes",
+      "permissions": [
+        "READ_MEDIA_IMAGES",
+        "READ_EXTERNAL_STORAGE",
+        "CAMERA",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow NEONTHREADS to access your photos to upload design images."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "bc989d6f-7d39-48b2-afa2-5669e852ffe1"
+      }
+    }
+  }
+}
