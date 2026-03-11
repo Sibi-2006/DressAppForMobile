@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
     View, Text, StyleSheet, ScrollView,
     TouchableOpacity, Dimensions, Animated, StatusBar
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import AppHeader from '../../components/AppHeader';
 
@@ -33,6 +34,14 @@ export default function HomeScreen() {
     const navigation = useNavigation();
     const { user } = useAuth();
     const [glowAnim] = useState(new Animated.Value(0.4));
+    const scrollRef = useRef(null);
+
+    // Scroll to top whenever this tab comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            scrollRef.current?.scrollTo({ y: 0, animated: true });
+        }, [])
+    );
 
     useEffect(() => {
         Animated.loop(
@@ -47,7 +56,7 @@ export default function HomeScreen() {
         <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
             <AppHeader />
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
                 {/* ── HERO ── */}
                 <View style={styles.hero}>

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
     View, Text, StyleSheet, FlatList, Image,
     TouchableOpacity, RefreshControl, ActivityIndicator, Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { Star, ArrowRight } from 'lucide-react-native';
 import api from '../../config/api';
 import AppHeader from '../../components/AppHeader';
@@ -28,6 +29,14 @@ const ShopScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [activeFit, setActiveFit] = useState('ALL');
+    const listRef = useRef(null);
+
+    // Scroll to top when tab is focused
+    useFocusEffect(
+        useCallback(() => {
+            listRef.current?.scrollToOffset({ offset: 0, animated: true });
+        }, [])
+    );
 
     const fetchProducts = async () => {
         try {
@@ -129,6 +138,7 @@ const ShopScreen = ({ navigation }) => {
             </View>
 
             <FlatList
+                ref={listRef}
                 data={filteredProducts}
                 renderItem={renderProduct}
                 keyExtractor={item => item._id}
