@@ -11,77 +11,31 @@ import { useToast } from '../../context/ToastContext';
 import DraggableImage from '../../components/DraggableImage';
 import api from '../../config/api';
 import AppHeader from '../../components/AppHeader';
+import { tshirtAssets } from '../../config/tshirtAssets';
+import ColorPickerSimple from '../../components/ColorPickerSimple';
 
 const { width } = Dimensions.get('window');
 const CANVAS_SIZE = width - 32;
 
-// ─────────────────────────────────────────────────
-// BUG 1 FIX: Local t-shirt images via static require()
-// Files are now in mobileapp/assets/tshirts/
-// ─────────────────────────────────────────────────
-const TSHIRT_IMAGES = {
-    'NORMAL_FIT': {
-        Black: {
-            front: require('../../../assets/tshirts/normal_black_front.png'),
-            back: require('../../../assets/tshirts/normal_black_back.png'),
-        },
-        White: {
-            front: require('../../../assets/tshirts/normal_white_front.png'),
-            back: require('../../../assets/tshirts/normal_white_back.png'),
-        },
-        Blue: {
-            front: require('../../../assets/tshirts/normal_blue_front.png'),
-            back: require('../../../assets/tshirts/normal_blue_back.png'),
-        },
-        Purple: {
-            front: require('../../../assets/tshirts/normal_purple_front.png'),
-            back: require('../../../assets/tshirts/normal_purple_back.png'),
-        },
-    },
-    'OVERSIZED_FIT': {
-        Black: {
-            front: require('../../../assets/tshirts/oversized_black_front.png'),
-            back: require('../../../assets/tshirts/oversized_black_back.png'),
-        },
-        White: {
-            front: require('../../../assets/tshirts/oversized_white_front.png'),
-            back: require('../../../assets/tshirts/oversized_white_back.png'),
-        },
-        Blue: {
-            front: require('../../../assets/tshirts/oversized_blue_front.png'),
-            back: require('../../../assets/tshirts/oversized_blue_back.png'),
-        },
-        Purple: {
-            front: require('../../../assets/tshirts/oversized_purple_front.png'),
-            back: require('../../../assets/tshirts/oversized_purple_back.png'),
-        },
-    },
-};
-
-// ─────────────────────────────────────────────────
-// BUG 2 FIX: Exactly 4 colors matching asset filenames
-// ─────────────────────────────────────────────────
-const COLORS = [
-    { name: 'Black', hex: '#1a1a1a' },
-    { name: 'White', hex: '#f0f0f0' },
-    { name: 'Blue', hex: '#1a3a6e' },
-    { name: 'Purple', hex: '#4a1a6e' },
-];
-
 const SIZES = ['S', 'M', 'L', 'XL', '2XL'];
 const FIT_TYPES = [
-    { label: 'Normal Fit', value: 'NORMAL_FIT', price: 799 },
-    { label: 'Oversized', value: 'OVERSIZED_FIT', price: 999 },
+    { label: tshirtAssets.fits.normal.label, value: 'NORMAL_FIT', key: 'normal', price: parseInt(tshirtAssets.fits.normal.price.replace('₹', '')) },
+    { label: tshirtAssets.fits.oversized.label, value: 'OVERSIZED_FIT', key: 'oversized', price: parseInt(tshirtAssets.fits.oversized.price.replace('₹', '')) },
 ];
 
 // ─────────────────────────────────────────────────
-const CustomizeScreen = ({ navigation }) => {
+const CustomizeScreen = ({ navigation, route }) => {
     const { addToCart } = useContext(CartContext);
     const { toast_success, toast_error, toast_warning, toast_info, toast_cart } = useToast();
 
+    // Default params parsing
+    const passedColor = route?.params?.color?.toLowerCase() || 'black';
+    const passedFit = route?.params?.fit || 'NORMAL_FIT';
+    const defaultFit = FIT_TYPES.find(f => f.value === passedFit) || FIT_TYPES[0];
+
     // State
-    const [selectedColor, setSelectedColor] = useState('Black');
-    const [fitType, setFitType] = useState(FIT_TYPES[0]);
+    const [selectedColor, setSelectedColor] = useState(passedColor);
+    const [fitType, setFitType] = useState(defaultFit);
     const [selectedSize, setSelectedSize] = useState('M');
     const [quantity, setQuantity] = useState(1);
     const [activeSide, setActiveSide] = useState('front');
@@ -95,8 +49,37 @@ const CustomizeScreen = ({ navigation }) => {
     const activeLayers = activeSide === 'front' ? frontLayers : backLayers;
     const setActiveLayers = activeSide === 'front' ? setFrontLayers : setBackLayers;
 
-    // Resolve t-shirt image source
-    const tshirtSource = TSHIRT_IMAGES[fitType.value]?.[selectedColor]?.[activeSide];
+    // Image Map as requested
+    const getImage = () => {
+        try {
+            const imageMap = {
+                'normal_black_front': require('../../../assets/tshirts/normal_black_front.png'),
+                'normal_black_back': require('../../../assets/tshirts/normal_black_back.png'),
+                'normal_white_front': require('../../../assets/tshirts/normal_white_front.png'),
+                'normal_white_back': require('../../../assets/tshirts/normal_white_back.png'),
+                'normal_blue_front': require('../../../assets/tshirts/normal_blue_front.png'),
+                'normal_blue_back': require('../../../assets/tshirts/normal_blue_back.png'),
+                'normal_purple_front': require('../../../assets/tshirts/normal_purple_front.png'),
+                'normal_purple_back': require('../../../assets/tshirts/normal_purple_back.png'),
+                'oversized_black_front': require('../../../assets/tshirts/oversized_black_front.png'),
+                'oversized_black_back': require('../../../assets/tshirts/oversized_black_back.png'),
+                'oversized_white_front': require('../../../assets/tshirts/oversized_white_front.png'),
+                'oversized_white_back': require('../../../assets/tshirts/oversized_white_back.png'),
+                'oversized_blue_front': require('../../../assets/tshirts/oversized_blue_front.png'),
+                'oversized_blue_back': require('../../../assets/tshirts/oversized_blue_back.png'),
+                'oversized_purple_front': require('../../../assets/tshirts/oversized_purple_front.png'),
+                'oversized_purple_back': require('../../../assets/tshirts/oversized_purple_back.png'),
+            };
+
+            const key = `${fitType.key}_${selectedColor}_${activeSide}`;
+            return imageMap[key];
+        } catch (error) {
+            console.log('Image error:', error);
+            return null;
+        }
+    };
+
+    const tshirtSource = getImage();
 
     // ──────────────────────────────────────────────
     // BUG 3 FIX: Base64 JSON upload
@@ -111,7 +94,7 @@ const CustomizeScreen = ({ navigation }) => {
             }
 
             const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                mediaTypes: ['images'], // Expo SDK 50+ uses array for mediaTypes. 
                 allowsEditing: false,
                 quality: 0.6,   // lower quality = smaller base64 = faster upload
                 base64: true,   // ← works on both web preview & real device
@@ -297,35 +280,10 @@ const CustomizeScreen = ({ navigation }) => {
                     </View>
 
                     {/* ── Color Selector ── */}
-                    <View style={styles.section}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                            <Text style={[styles.sectionLabel, { marginBottom: 0 }]}>PICK COLOR</Text>
-                            <Text style={{ color: '#00ffff', fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>{selectedColor.toUpperCase()}</Text>
-                        </View>
-                        <View style={{ maxHeight: 180, borderRadius: 12, overflow: 'hidden' }}>
-                            <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
-                                {COLORS.map(c => (
-                                    <TouchableOpacity
-                                        key={c.name}
-                                        style={[
-                                            styles.colorListBtn,
-                                            selectedColor === c.name && styles.colorListBtnActive
-                                        ]}
-                                        onPress={() => setSelectedColor(c.name)}
-                                        activeOpacity={0.7}
-                                    >
-                                        <View style={styles.colorRowInner}>
-                                            <View style={[styles.colorCircle, { backgroundColor: c.hex }, selectedColor === c.name && styles.colorCircleActive]} />
-                                            <Text style={[styles.colorNameLabel, selectedColor === c.name && styles.colorNameLabelActive]}>
-                                                {c.name.toUpperCase()}
-                                            </Text>
-                                        </View>
-                                        {selectedColor === c.name && <Text style={styles.colorListCheck}>✓</Text>}
-                                    </TouchableOpacity>
-                                ))}
-                            </ScrollView>
-                        </View>
-                    </View>
+                    <ColorPickerSimple
+                        onColorSelect={setSelectedColor}
+                        selectedColor={selectedColor}
+                    />
 
                     {/* ── Fit Type ── */}
                     <View style={styles.section}>

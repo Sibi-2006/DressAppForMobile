@@ -54,18 +54,32 @@ const CheckoutScreen = ({ navigation }) => {
         setLoading(true);
         try {
             const orderData = {
-                items: cartItems,
-                shippingAddress: address,
-                paymentInfo: {
-                    method: 'UPI',
-                    transactionId: utr,
-                    amount: total
-                }
+                items: cartItems.map(item => ({
+                    ...item,
+                    side: item.side || 'front', // ensure side is present
+                })),
+                shippingAddress: {
+                    street: address.addressLine1 + (address.addressLine2 ? ', ' + address.addressLine2 : ''),
+                    city: address.city,
+                    state: address.state,
+                    zipCode: address.pincode,
+                    country: 'India'
+                },
+                totalPrice: total,
+                client_note: ''
             };
 
             const { data } = await api.post('/api/orders', orderData);
-            if (data.success) {
-                toast_success('Order placed successfully! 🎉');
+            
+            // Backend returns { orderId, customOrderId, amount, upiLink, order }
+            if (data.orderId) {
+                // Now update payment with UTR
+                await api.patch(`/api/orders/${data.orderId}/payment`, {
+                    status: 'VERIFICATION_PENDING',
+                    utr_number: utr
+                });
+
+                toast_success('Order placed! Verification pending. 🎉');
                 await clearCart();
                 navigation.replace('OrderSuccess', { orderId: data.orderId });
             }

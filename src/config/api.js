@@ -8,8 +8,24 @@ const api = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
-    timeout: 15000,
+    timeout: 30000, // increased for slow render backends
 });
+
+// Request interceptor: Attach token if it exists in AsyncStorage
+api.interceptors.request.use(
+    async (config) => {
+        try {
+            const token = await AsyncStorage.getItem('token');
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+        } catch (error) {
+            console.log('AsyncStorage token reading error:', error.message);
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
 
 // Log all API errors in dev
 api.interceptors.response.use(

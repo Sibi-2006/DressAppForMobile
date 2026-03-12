@@ -1,36 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
-import { ShoppingBag, DollarSign, Package, TrendingUp, Users, Clock } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, useWindowDimensions } from 'react-native';
+import { ShoppingBag, DollarSign, Package, TrendingUp, Users, Clock, LogOut, User } from 'lucide-react-native';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../config/api';
 
-const KPICard = ({ title, value, icon: Icon, color }) => (
-    <View style={styles.kpiCard}>
+const KPICard = ({ title, value, icon: Icon, color, width }) => (
+    <View style={[styles.kpiCard, { width }]}>
         <View style={[styles.kpiIcon, { backgroundColor: color + '10' }]}>
             <Icon color={color} size={20} />
         </View>
-        <Text style={styles.kpiValue}>{value}</Text>
+        <Text style={styles.kpiValue} numberOfLines={1}>{value}</Text>
         <Text style={styles.kpiTitle}>{title.toUpperCase()}</Text>
     </View>
 );
 
 const AdminDashboardScreen = ({ navigation }) => {
+    const { width } = useWindowDimensions();
+    const { logout } = useAuth();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+
+    // Columns: 4 for tablet (> 600px), 2 for mobile
+    const columns = width > 600 ? 4 : 2;
+    const cardWidth = (width - 60 - (columns - 1) * 15) / columns;
 
     const fetchStats = async () => {
         try {
             // Mock backend stats or actual endpoint if exists
             // Since we use the real backend, let's try calling admin/stats or similar
-            const { data } = await api.get('/api/admin/stats');
-            setStats(data);
-        } catch (err) {
-            // Use defaults if fetch fails
+            const { data } = await api.get('/api/admin/analytics');
             setStats({
-                totalOrders: 0,
-                revenue: 0,
-                pendingOrders: 0,
-                totalUsers: 0
+                totalOrders: data.totalOrders,
+                revenue: data.totalRevenue,
+                pendingOrders: data.statusBreakdown?.pending || 0,
+                totalUsers: data.totalTshirtsSold // Using this as proxy or actual users if available
             });
         } finally {
             setLoading(false);
@@ -41,6 +45,10 @@ const AdminDashboardScreen = ({ navigation }) => {
     useEffect(() => {
         fetchStats();
     }, []);
+
+    const handleLogout = () => {
+        logout();
+    };
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -62,15 +70,27 @@ const AdminDashboardScreen = ({ navigation }) => {
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00ffff" />}
         >
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>COMMAND <Text style={{ color: '#00ffff' }}>CENTER</Text></Text>
-                <Text style={styles.headerSub}>Overview of the neon marketplace.</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <View>
+                        <Text style={styles.headerTitle}>COMMAND <Text style={{ color: '#00ffff' }}>CENTER</Text></Text>
+                        <Text style={styles.headerSub}>Overview of the neon marketplace.</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.headerBtn}>
+                            <User color="#00ffff" size={20} />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={handleLogout} style={[styles.headerBtn, { borderColor: '#ff333320' }]}>
+                            <LogOut color="#ff3333" size={20} />
+                        </TouchableOpacity>
+                    </View>
+                </View>
             </View>
 
             <View style={styles.grid}>
-                <KPICard title="Total Orders" value={stats?.totalOrders || 0} icon={Package} color="#00ffff" />
-                <KPICard title="Revenue" value={`₹${stats?.revenue || 0}`} icon={DollarSign} color="#00ff88" />
-                <KPICard title="Pending" value={stats?.pendingOrders || 0} icon={Clock} color="#ffaa00" />
-                <KPICard title="Citizens" value={stats?.totalUsers || 0} icon={Users} color="#ff00aa" />
+                <KPICard title="Total Orders" value={stats?.totalOrders || 0} icon={Package} color="#00ffff" width={cardWidth} />
+                <KPICard title="Revenue" value={`₹${stats?.revenue || 0}`} icon={DollarSign} color="#00ff88" width={cardWidth} />
+                <KPICard title="Pending" value={stats?.pendingOrders || 0} icon={Clock} color="#ffaa00" width={cardWidth} />
+                <KPICard title="Citizens" value={stats?.totalUsers || 0} icon={Users} color="#ff00aa" width={cardWidth} />
             </View>
 
             <View style={styles.actionSection}>
@@ -107,15 +127,16 @@ const styles = StyleSheet.create({
     header: { padding: 30 },
     headerTitle: { color: '#ffffff', fontSize: 28, fontWeight: '900', letterSpacing: 2, marginBottom: 5 },
     headerSub: { color: '#555', fontSize: 12, fontWeight: 'bold' },
-    grid: { padding: 15, flexDirection: 'row', flexWrap: 'wrap', gap: 15, justifyContent: 'center' },
-    kpiCard: { width: '44%', backgroundColor: '#111', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#1a1a1a', alignItems: 'center' },
+    grid: { paddingHorizontal: 30, flexDirection: 'row', flexWrap: 'wrap', gap: 15, justifyContent: 'flex-start' },
+    kpiCard: { backgroundColor: '#111', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#1a1a1a', alignItems: 'center' },
     kpiIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 15 },
     kpiValue: { color: '#fff', fontSize: 20, fontWeight: '900', marginBottom: 5 },
     kpiTitle: { color: '#555', fontSize: 8, fontWeight: 'bold', letterSpacing: 2 },
     actionSection: { padding: 30, marginTop: 10 },
     sectionTitle: { color: '#333', fontSize: 10, fontWeight: 'bold', letterSpacing: 3, marginBottom: 20 },
     actionBtn: { backgroundColor: '#111', borderRadius: 15, padding: 20, flexDirection: 'row', alignItems: 'center', gap: 15, borderWidth: 1, borderColor: '#1a1a1a', marginBottom: 15 },
-    actionBtnText: { flex: 1, color: '#ffffff', fontWeight: 'bold', fontSize: 14, letterSpacing: 1 }
+    actionBtnText: { flex: 1, color: '#ffffff', fontWeight: 'bold', fontSize: 14, letterSpacing: 1 },
+    headerBtn: { padding: 10, borderRadius: 12, backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: '#333' }
 });
 
 export default AdminDashboardScreen;

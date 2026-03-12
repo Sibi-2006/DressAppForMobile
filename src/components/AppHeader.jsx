@@ -43,14 +43,27 @@ export default function AppHeader({ title, showBack = false }) {
                 <View style={styles.center} />
             )}
 
-            {/* Right: Profile Avatar */}
+            {/* Right: Profile / Auth Actions */}
             <View style={styles.right}>
-                <TouchableOpacity
-                    style={styles.profileBtn}
-                    onPress={() => navigation.navigate('Profile')}
-                >
-                    <Text style={styles.profileInitials}>{getInitials()}</Text>
-                </TouchableOpacity>
+                {user ? (
+                    <TouchableOpacity
+                        style={styles.profileBtn}
+                        onPress={() => navigation.navigate('Profile')}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.profileInitials}>{getInitials()}</Text>
+                    </TouchableOpacity>
+                ) : (
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                        <TouchableOpacity
+                            style={styles.authBtnIn}
+                            onPress={() => navigation.navigate('Auth', { screen: 'Login' })}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={styles.authBtnInText}>LOGIN</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
             </View>
         </View>
     );
@@ -115,5 +128,12 @@ const styles = StyleSheet.create({
         color: '#00ffff',
         fontSize: 12,
         fontWeight: '700',
+    },
+    authBtnIn: {
+        borderWidth: 1, borderColor: '#00ffff', backgroundColor: 'transparent',
+        paddingVertical: 5, paddingHorizontal: 12, borderRadius: 6,
+    },
+    authBtnInText: {
+        color: '#00ffff', fontSize: 10, fontWeight: '700', letterSpacing: 1,
     },
 });

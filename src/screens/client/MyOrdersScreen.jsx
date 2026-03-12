@@ -37,7 +37,11 @@ const OrderCard = ({ order, onCancel }) => {
     const isPending = statusKey === 'pending' || statusKey === 'PENDING';
 
     return (
-        <View style={card.container}>
+        <TouchableOpacity 
+            style={card.container} 
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('OrderDetail', { orderId: order._id })}
+        >
             {/* Header row */}
             <View style={card.header}>
                 <View>
@@ -58,29 +62,40 @@ const OrderCard = ({ order, onCancel }) => {
             </View>
 
             {/* Design preview thumbnails */}
-            {order.items?.slice(0, 2).map((item, idx) => !!item.image && (
-                <View key={idx} style={card.thumbRow}>
-                    <Image
-                        source={{ uri: item.image }}
-                        style={card.thumb}
-                        resizeMode="contain"
-                    />
-                    <View style={card.thumbInfo}>
-                        <Text style={card.thumbName} numberOfLines={1}>{item.name || 'Custom Design'}</Text>
-                        <Text style={card.thumbMeta}>
-                            {[item.fit_type?.replace('_', ' '), item.size, item.color].filter(Boolean).join(' · ')}
-                        </Text>
+            {order.items?.slice(0, 2).map((item, idx) => {
+                const itemImage = item.front_images?.[0]?.url || item.image || item.front_image;
+                if (!itemImage) return null;
+                
+                return (
+                    <View key={idx} style={card.thumbRow}>
+                        <Image
+                            source={{ uri: itemImage }}
+                            style={card.thumb}
+                            resizeMode="contain"
+                        />
+                        <View style={card.thumbInfo}>
+                            <Text style={card.thumbName} numberOfLines={1}>{item.name || 'Custom Design'}</Text>
+                            <Text style={card.thumbMeta}>
+                                {[item.fit_type?.replace('_', ' '), item.size, item.color].filter(Boolean).join(' · ')}
+                            </Text>
+                        </View>
                     </View>
-                </View>
-            ))}
+                );
+            })}
 
             {/* Cancel button for pending orders */}
             {isPending && (
-                <TouchableOpacity style={card.cancelBtn} onPress={() => onCancel(order._id)}>
+                <TouchableOpacity 
+                    style={card.cancelBtn} 
+                    onPress={(e) => {
+                        e.stopPropagation(); // prevent card click
+                        onCancel(order._id);
+                    }}
+                >
                     <Text style={card.cancelText}>CANCEL ORDER</Text>
                 </TouchableOpacity>
             )}
-        </View>
+        </TouchableOpacity>
     );
 };
 
@@ -162,7 +177,7 @@ export default function MyOrdersScreen() {
 
     const fetchOrders = async () => {
         try {
-            const res = await api.get('/api/orders/my-orders');
+            const res = await api.get('/api/orders/myorders');
             console.log('Orders response:', JSON.stringify(res.data).slice(0, 200));
             // Handle different response shapes: array, { orders: [] }, { data: [] }
             const list = Array.isArray(res.data)
@@ -186,7 +201,7 @@ export default function MyOrdersScreen() {
                 style: 'destructive',
                 onPress: async () => {
                     try {
-                        await api.patch(`/api/orders/${orderId}/cancel`);
+                        await api.put(`/api/orders/${orderId}/cancel`);
                         fetchOrders();
                         toast_success('Order cancelled ✓');
                     } catch {

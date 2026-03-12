@@ -12,7 +12,7 @@ const AdminOrdersScreen = ({ navigation }) => {
 
     const fetchOrders = async () => {
         try {
-            const { data } = await api.get('/api/admin/orders');
+            const { data } = await api.get('/api/orders');
             setOrders(data);
         } catch (err) {
             console.error('Failed to fetch admin orders', err);
@@ -55,9 +55,9 @@ const AdminOrdersScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.orderMeta}>
-                <Text style={styles.orderTotal}>₹{item.totalAmount}</Text>
+                <Text style={styles.orderTotal}>₹{item.totalPrice}</Text>
                 <View style={[styles.statusTag, { backgroundColor: getStatusColor(item.status) + '20', borderColor: getStatusColor(item.status) }]}>
-                    <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>{item.status.toUpperCase()}</Text>
+                    <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>{item.status?.toUpperCase()}</Text>
                 </View>
             </View>
 
@@ -66,11 +66,12 @@ const AdminOrdersScreen = ({ navigation }) => {
     );
 
     const getStatusColor = (status) => {
-        if (status === 'pending') return '#ffaa00';
-        if (status === 'processing') return '#00ffff';
-        if (status === 'shipped') return '#bf00ff';
-        if (status === 'delivered') return '#00ff88';
-        if (status === 'cancelled') return '#ff3333';
+        const s = status?.toLowerCase();
+        if (s === 'pending') return '#ffaa00';
+        if (s === 'processing') return '#00ffff';
+        if (s === 'shipped') return '#bf00ff';
+        if (s === 'delivered') return '#00ff88';
+        if (s === 'cancelled') return '#ff3333';
         return '#888';
     };
 

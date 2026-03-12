@@ -16,8 +16,10 @@ import ShopScreen from '../screens/client/ShopScreen';
 import CartScreen from '../screens/client/CartScreen';
 import CheckoutScreen from '../screens/client/CheckoutScreen';
 import MyOrdersScreen from '../screens/client/MyOrdersScreen';
+import OrderDetailScreen from '../screens/client/OrderDetailScreen';
 import OrderSuccessScreen from '../screens/client/OrderSuccessScreen';
 import ProfileScreen from '../screens/client/ProfileScreen';
+import CustomizeScreen from '../screens/client/CustomizeScreen';
 
 // Admin Screens
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
@@ -25,16 +27,10 @@ import AdminOrdersScreen from '../screens/admin/AdminOrdersScreen';
 import AdminOrderDetailScreen from '../screens/admin/AdminOrderDetailScreen';
 import AdminConfigScreen from '../screens/admin/AdminConfigScreen';
 
-// NOTE: CustomizeScreen excluded from static imports — lazy loaded below
-// to avoid Metro bundler issue with NORMAL_FIT/OVERSIZED_FIT directory scan
-const CustomizeScreen = React.lazy
-    ? React.lazy(() => import('../screens/client/CustomizeScreen'))
-    : require('../screens/client/CustomizeScreen').default;
-
 // Debug: log all screen components at startup
 const SCREEN_MAP = {
     LoginScreen, SignUpScreen, HomeScreen, ShopScreen,
-    CartScreen, CheckoutScreen, MyOrdersScreen,
+    CartScreen, CheckoutScreen, MyOrdersScreen, OrderDetailScreen,
     OrderSuccessScreen, ProfileScreen,
     AdminDashboardScreen, AdminOrdersScreen,
     AdminOrderDetailScreen, AdminConfigScreen,
@@ -124,6 +120,7 @@ const ClientStack = () => (
     <ClientStackNav.Navigator screenOptions={{ headerShown: false }}>
         <ClientStackNav.Screen name="MainTabs" component={ClientTabs} />
         <ClientStackNav.Screen name="Checkout" component={CheckoutScreen} />
+        <ClientStackNav.Screen name="OrderDetail" component={OrderDetailScreen} />
         <ClientStackNav.Screen name="OrderSuccess" component={OrderSuccessScreen} />
         <ClientStackNav.Screen name="Profile" component={ProfileScreen} />
     </ClientStackNav.Navigator>
@@ -142,6 +139,7 @@ const AdminStack = () => (
         <AdminStackNav.Screen name="AdminOrders" component={AdminOrdersScreen} options={{ title: 'ORDERS' }} />
         <AdminStackNav.Screen name="AdminOrderDetail" component={AdminOrderDetailScreen} options={{ title: 'ORDER DETAIL' }} />
         <AdminStackNav.Screen name="AdminConfig" component={AdminConfigScreen} options={{ title: 'CONFIG' }} />
+        <AdminStackNav.Screen name="Profile" component={ProfileScreen} options={{ title: 'PROFILE' }} />
     </AdminStackNav.Navigator>
 );
 

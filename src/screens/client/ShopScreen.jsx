@@ -8,15 +8,16 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Star, ArrowRight } from 'lucide-react-native';
 import api from '../../config/api';
 import AppHeader from '../../components/AppHeader';
+import { tshirtAssets } from '../../config/tshirtAssets';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;  // 2 columns, 24px padding each side, 0 gap
 
-const ProductImage = ({ uri }) => {
+const ProductImage = ({ source }) => {
     const [error, setError] = useState(false);
     return (
         <Image
-            source={{ uri: error ? 'https://via.placeholder.com/400x400/111111/00ffff?text=NEON' : uri }}
+            source={error ? { uri: 'https://via.placeholder.com/400x400/111111/00ffff?text=NEON' } : source}
             style={styles.productImage}
             resizeMode="contain"
             onError={() => setError(true)}
@@ -54,14 +55,37 @@ const ShopScreen = ({ navigation }) => {
 
     const onRefresh = () => { setRefreshing(true); fetchProducts(); };
 
-    const getImageUri = (product) => {
-        if (product.images && product.colors?.length > 0) {
-            const colorData = product.images[product.colors[0]];
-            if (colorData?.front) return colorData.front;
+    const getImageSource = (product) => {
+        // High priority: backend absolute urls
+        if (product.images && typeof product.images === 'object') {
+            const colorId = product.colors?.[0] || Object.keys(product.images)[0];
+            const colorData = product.images[colorId];
+            if (colorData?.front && (colorData.front.startsWith('http') || colorData.front.startsWith('data:'))) {
+                return { uri: colorData.front };
+            }
         }
-        const colorToUse = product.color || product.colors?.[0] || 'Black';
-        const fitPrefix = product.fit_type === 'OVERSIZED_FIT' ? 'Oversized_fit' : 'Normal_fit';
-        return `https://dressappclient.onrender.com/assets/${product.fit_type}/${fitPrefix}_${colorToUse}_frontside.png`;
+
+        // Local fallback
+        try {
+            const colorToUse = product.color?.toLowerCase() || product.colors?.[0]?.toLowerCase() || 'black';
+            const fitKey = product.fit_type === 'OVERSIZED_FIT' ? 'oversized' : 'normal';
+
+            const imageMap = {
+                'normal_black_front': require('../../../assets/tshirts/normal_black_front.png'),
+                'normal_white_front': require('../../../assets/tshirts/normal_white_front.png'),
+                'normal_blue_front': require('../../../assets/tshirts/normal_blue_front.png'),
+                'normal_purple_front': require('../../../assets/tshirts/normal_purple_front.png'),
+                'oversized_black_front': require('../../../assets/tshirts/oversized_black_front.png'),
+                'oversized_white_front': require('../../../assets/tshirts/oversized_white_front.png'),
+                'oversized_blue_front': require('../../../assets/tshirts/oversized_blue_front.png'),
+                'oversized_purple_front': require('../../../assets/tshirts/oversized_purple_front.png'),
+            };
+
+            const key = `${fitKey}_${colorToUse}_front`;
+            return imageMap[key] || imageMap['normal_black_front'];
+        } catch (e) {
+            return require('../../../assets/tshirts/normal_black_front.png');
+        }
     };
 
     const filteredProducts = activeFit === 'ALL'
@@ -78,7 +102,7 @@ const ShopScreen = ({ navigation }) => {
             activeOpacity={0.8}
         >
             <View style={styles.imageContainer}>
-                <ProductImage uri={getImageUri(item)} />
+                <ProductImage source={getImageSource(item)} />
                 <View style={[styles.badge, { backgroundColor: item.fit_type === 'OVERSIZED_FIT' ? '#ff00aa' : '#00ffff' }]}>
                     <Text style={styles.badgeText}>{item.fit_type === 'OVERSIZED_FIT' ? 'OS' : 'NF'}</Text>
                 </View>

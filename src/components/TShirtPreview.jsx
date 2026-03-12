@@ -1,16 +1,14 @@
 import React from 'react';
 import { View, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { tshirtAssets } from '../config/tshirtAssets';
 
-const COLORS = ['Black', 'White', 'Skyblue', 'Purple'];
+const COLORS = ['Black', 'White', 'Blue', 'Purple'];
 
 const TShirtPreview = ({ selectedColor = 'Black', fitType = 'NORMAL_FIT', activeSide = 'front' }) => {
 
-    const getImagePath = (color) => {
-        const fitPrefix = fitType === 'OVERSIZED_FIT' ? 'Oversized_fit' : 'Normal_fit';
-        const sideSuffix = activeSide === 'front' ? 'frontside' : 'backside';
-
-        // Using the same convention as web app assets
-        return `https://dressappclient.onrender.com/assets/${fitType}/${fitPrefix}_${color}_${sideSuffix}.png`;
+    const getImageSource = (color) => {
+        const colorObj = tshirtAssets.colors.find(c => c.id === color) || tshirtAssets.colors[0];
+        return colorObj.images[fitType]?.[activeSide] || colorObj.images['NORMAL_FIT'][activeSide];
     };
 
     return (
@@ -18,10 +16,10 @@ const TShirtPreview = ({ selectedColor = 'Black', fitType = 'NORMAL_FIT', active
             {COLORS.map((color) => (
                 <Image
                     key={color}
-                    source={{ uri: getImagePath(color) }}
+                    source={getImageSource(color)}
                     style={[
                         styles.shirtImage,
-                        { opacity: selectedColor === color ? 1 : 0 }
+                        { opacity: selectedColor === color ? 1 : 0, position: 'absolute' }
                     ]}
                     resizeMode="contain"
                 />

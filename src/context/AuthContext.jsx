@@ -46,10 +46,9 @@ export const AuthProvider = ({ children }) => {
             setIsAdmin(userData.role === 'admin' || userData.isAdmin === true);
             setLoading(false);   // ← Unblock UI right away
 
-            // Then silently verify with backend (/api/auth/profile = protected route)
-            // Use /api/auth/profile since /api/auth/me doesn't exist
+            // SILENT VERIFY: check token works with backend profile endpoint
             try {
-                const res = await api.get('/api/auth/profile', { timeout: 6000 });
+                const res = await api.get('/api/auth/profile');
                 const freshUser = res.data?.user || res.data;
                 if (freshUser?._id) {
                     setUser(freshUser);
@@ -57,12 +56,9 @@ export const AuthProvider = ({ children }) => {
                 }
             } catch (verifyErr) {
                 if (verifyErr.response?.status === 401) {
-                    // Cookie truly expired → logout
-                    console.log('Cookie expired, session ended');
+                    console.log('Mobile session expired (401)');
                     await _clearSession();
                 }
-                // Network error / 5xx → keep user logged in (offline mode)
-                console.log('Background verify failed (keeping session):', verifyErr.message);
             }
 
         } catch (err) {
@@ -72,7 +68,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const _clearSession = async () => {
-        await AsyncStorage.multiRemove(['neon_user', 'neon_cart']);
+        await AsyncStorage.multiRemove(['neon_user', 'neon_cart', 'token']);
         setUser(null);
         setIsLoggedIn(false);
         setIsAdmin(false);
@@ -90,8 +86,11 @@ export const AuthProvider = ({ children }) => {
                 return { success: false, message: 'Login failed: no user data received' };
             }
 
-            // Persist to AsyncStorage so next app open auto-logs in
+            // Persist to AsyncStorage
             await AsyncStorage.setItem('neon_user', JSON.stringify(userData));
+            if (userData.token) {
+                await AsyncStorage.setItem('token', userData.token);
+            }
 
             setUser(userData);
             setIsLoggedIn(true);
@@ -108,6 +107,10 @@ export const AuthProvider = ({ children }) => {
     const register = async (formData) => {
         try {
             const res = await api.post('/api/auth/register', formData);
+            if (res.data?.token) {
+                await AsyncStorage.setItem('token', res.data.token);
+                await AsyncStorage.setItem('neon_user', JSON.stringify(res.data.user || res.data));
+            }
             return { success: true, data: res.data };
         } catch (err) {
             return {

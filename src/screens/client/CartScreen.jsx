@@ -16,7 +16,7 @@ const CartScreen = ({ navigation }) => {
         <View style={styles.cartItem}>
             <View style={styles.itemPreview}>
                 <Image
-                    source={{ uri: item.image || 'https://via.placeholder.com/200x200/111111/00ffff?text=N' }}
+                    source={{ uri: item.front_images?.[0]?.url || item.image || item.back_images?.[0]?.url || 'https://via.placeholder.com/200x200/111111/00ffff?text=N' }}
                     style={styles.previewImage}
                     resizeMode="contain"
                 />

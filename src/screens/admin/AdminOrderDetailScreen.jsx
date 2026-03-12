@@ -11,7 +11,7 @@ const AdminOrderDetailScreen = ({ route }) => {
 
     const fetchOrderDetail = async () => {
         try {
-            const { data } = await api.get(`/api/admin/orders/${orderId}`);
+            const { data } = await api.get(`/api/orders/${orderId}`);
             setOrder(data);
         } catch (err) {
             console.error('Failed to fetch order details', err);
@@ -27,7 +27,7 @@ const AdminOrderDetailScreen = ({ route }) => {
     const handleUpdateStatus = async (newStatus) => {
         setUpdating(true);
         try {
-            await api.patch(`/api/admin/orders/${orderId}/status`, { status: newStatus });
+            await api.put(`/api/orders/${orderId}/status`, { status: newStatus });
             await fetchOrderDetail();
             Alert.alert('Updated', `Order status set to ${newStatus.toUpperCase()}`);
         } catch (err) {
@@ -101,18 +101,27 @@ const AdminOrderDetailScreen = ({ route }) => {
                     <Package color="#ff00aa" size={18} />
                     <Text style={styles.cardTitle}>ORDER ITEMS</Text>
                 </View>
-                {order?.items.map((item, idx) => (
-                    <View key={idx} style={styles.orderListItem}>
-                        <View style={styles.itemImageContainer}>
-                            <Image source={{ uri: item.image }} style={styles.itemThumb} resizeMode="contain" />
+                {order?.items.map((item, idx) => {
+                    const firstColor = item.color || (item.colors?.[0]);
+                    const itemImage = item.image || item.front_images?.[0]?.url || item.front_image;
+                    
+                    return (
+                        <View key={idx} style={styles.orderListItem}>
+                            <View style={styles.itemImageContainer}>
+                                {itemImage ? (
+                                    <Image source={{ uri: itemImage }} style={styles.itemThumb} resizeMode="contain" />
+                                ) : (
+                                    <View style={[styles.itemThumb, { backgroundColor: '#1a1a1a' }]} />
+                                )}
+                            </View>
+                            <View style={styles.itemDetails}>
+                                <Text style={styles.itemName}>{item.name || 'Custom T-Shirt'}</Text>
+                                <Text style={styles.itemMeta}>{item.fit_type?.replace('_', ' ')} | {item.color} | {item.size}</Text>
+                                <Text style={styles.itemQty}>QTY: {item.quantity} | ₹{item.price}</Text>
+                            </View>
                         </View>
-                        <View style={styles.itemDetails}>
-                            <Text style={styles.itemName}>{item.name}</Text>
-                            <Text style={styles.itemMeta}>{item.fit_type} | {item.color} | {item.size}</Text>
-                            <Text style={styles.itemQty}>QTY: {item.quantity}</Text>
-                        </View>
-                    </View>
-                ))}
+                    );
+                })}
             </View>
 
             {/* Address Section */}
@@ -122,10 +131,9 @@ const AdminOrderDetailScreen = ({ route }) => {
                     <Text style={styles.cardTitle}>SHIPPING ADDRESS</Text>
                 </View>
                 <Text style={styles.addressText}>
-                    {order?.shippingAddress?.addressLine1}{'\n'}
-                    {order?.shippingAddress?.addressLine2 ? order?.shippingAddress?.addressLine2 + '\n' : ''}
+                    {order?.shippingAddress?.street || order?.shippingAddress?.addressLine1}{'\n'}
                     {order?.shippingAddress?.city}, {order?.shippingAddress?.state}{'\n'}
-                    PIN: {order?.shippingAddress?.pincode}
+                    PIN: {order?.shippingAddress?.zipCode || order?.shippingAddress?.pincode}
                 </Text>
             </View>
 
@@ -145,7 +153,7 @@ const AdminOrderDetailScreen = ({ route }) => {
                 </View>
                 <View style={styles.paymentRow}>
                     <Text style={styles.payLabel}>Amount:</Text>
-                    <Text style={[styles.payVal, { color: '#00ffff', fontWeight: '900' }]}>₹{order?.totalAmount}</Text>
+                    <Text style={[styles.payVal, { color: '#00ffff', fontWeight: '900' }]}>₹{order?.totalPrice}</Text>
                 </View>
             </View>
 
@@ -157,11 +165,12 @@ const AdminOrderDetailScreen = ({ route }) => {
 // Helper for status colors
 
 const getStatusColor = (status) => {
-    if (status === 'pending') return '#ffaa00';
-    if (status === 'processing') return '#00ffff';
-    if (status === 'shipped') return '#bf00ff';
-    if (status === 'delivered') return '#00ff88';
-    if (status === 'cancelled') return '#ff3333';
+    const s = status?.toLowerCase();
+    if (s === 'pending') return '#ffaa00';
+    if (s === 'processing') return '#00ffff';
+    if (s === 'shipped') return '#bf00ff';
+    if (s === 'delivered') return '#00ff88';
+    if (s === 'cancelled') return '#ff3333';
     return '#888';
 };
 

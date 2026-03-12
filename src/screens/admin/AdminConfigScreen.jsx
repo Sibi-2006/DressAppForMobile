@@ -27,7 +27,7 @@ const AdminConfigScreen = ({ navigation }) => {
     const handleSaveToast = async () => {
         setUpdating(true);
         try {
-            await api.post('/api/admin/toast-message', { message: toastMessage });
+            await api.patch('/api/admin/toast-message', { message: toastMessage });
             Alert.alert('Success', 'Global toast message updated!');
         } catch (err) {
             Alert.alert('Error', 'Failed to update toast message.');
